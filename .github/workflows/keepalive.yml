@@ -1,73 +1,38 @@
-name: MyJobMag Scraper (UK)
+name: Keepalive
+
+# GitHub automatically disables scheduled workflows (cron) after 60 days
+# with no repository activity/commits. This workflow makes a trivial
+# commit well inside that window so scrape.yml never gets silently
+# switched off.
 
 on:
   schedule:
-    - cron: "15,45 * * * *"   # offset from the NG schedule so both don't
-                              # fight over the same runner minute
-  workflow_dispatch: {}
+    - cron: "0 6 1,15 * *"   # twice a month — 1st and 15th, 06:00 UTC
+  workflow_dispatch: {}        # manual trigger too
 
 permissions:
   contents: write
 
-concurrency:
-  group: myjobmag-scraper-uk
-  cancel-in-progress: false
-
 jobs:
-  scrape:
+  keepalive:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
-
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: Pull latest changes
-        run: git pull --ff-only origin "${{ github.ref_name }}"
+      - name: Touch keepalive file
+        run: |
+          mkdir -p .github
+          echo "Last keepalive: $(date -u +'%Y-%m-%dT%H:%M:%SZ')" > .github/keepalive.txt
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Install dependencies
-        run: pip install -r requirements.txt
-
-      - name: Run scraper
-        env:
-          WP_BASE_URL: ${{ secrets.WP_BASE_URL }}
-          WP_USERNAME: ${{ secrets.WP_USERNAME }}
-          WP_APP_PASSWORD: ${{ secrets.WP_APP_PASSWORD }}
-          SITE_KEY: "uk"
-          SITE_BASE_URL: "https://www.myjobmag.co.uk"
-          SITE_LIST_PAGE_PATH: "/jobs/page/{page}"
-          # ⚠️ Verify these before your first real run: visit
-          # https://www.myjobmag.co.uk/jobs and check the "Last" pagination
-          # link for the true highest page number. The referrer in one of
-          # the pages you shared indicates page 400+ already exists, so
-          # 500 below is a rough starting guess, not a confirmed value.
-          START_PAGE: "500"
-          END_PAGE: "1"
-          PAGES_PER_RUN: "15"
-          MAX_RUN_SECONDS: "1080"
-        run: python myjobmag_scraper.py
-
-      - name: Commit progress files
-        if: always()
+      - name: Commit keepalive file
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add processed_uk.csv current_page_uk.txt
+          git add .github/keepalive.txt
           if git diff --cached --quiet; then
-            echo "No changes to commit."
+            echo "Nothing to commit."
           else
-            git commit -m "chore: update UK scraper progress [skip ci]"
-            if ! git push origin "HEAD:${{ github.ref_name }}"; then
-              echo "❌ git push FAILED — progress from this run will NOT persist to the next run."
-              echo "   Check Settings → Actions → General → Workflow permissions."
-              exit 1
-            fi
-            echo "✅ Progress committed and pushed."
+            git commit -m "chore: keepalive [skip ci]"
+            git push
           fi
