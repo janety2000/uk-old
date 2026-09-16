@@ -43,12 +43,13 @@ jobs:
           SITE_KEY: "uk"
           SITE_BASE_URL: "https://www.myjobmag.co.uk"
           SITE_LIST_PAGE_PATH: "/jobs/page/{page}"
-          # ⚠️ Verify these before your first real run: visit
-          # https://www.myjobmag.co.uk/jobs and check the "Last" pagination
-          # link for the true highest page number. The referrer in one of
-          # the pages you shared indicates page 400+ already exists, so
-          # 500 below is a rough starting guess, not a confirmed value.
-          START_PAGE: "500"
+          # ⚠️ This only takes effect if current_page_uk.txt doesn't exist
+          # yet (a fresh run) or was deleted — once that file exists, its
+          # saved value always wins over START_PAGE, by design, so the
+          # scraper resumes instead of restarting. If you ever need to
+          # force a restart from a specific page, edit/delete
+          # current_page_uk.txt in the repo directly.
+          START_PAGE: "139"
           END_PAGE: "1"
           PAGES_PER_RUN: "15"
           MAX_RUN_SECONDS: "1080"
