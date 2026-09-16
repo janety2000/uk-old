@@ -14,7 +14,7 @@ from bs4 import BeautifulSoup
 # ════════════════════════════════════════════════════════════════════════════
 # CONFIG
 # ════════════════════════════════════════════════════════════════════════════
-BASE_URL     = os.environ.get("SITE_BASE_URL", "https://www.myjobmag.com")
+BASE_URL     = os.environ.get("SITE_BASE_URL", "https://www.myjobmag.co.uk")
 
 # Listing-page URL pattern differs between country sites on this network.
 # Nigeria (myjobmag.com):     /page/{n}
